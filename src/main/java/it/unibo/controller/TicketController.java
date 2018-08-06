@@ -15,18 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 import it.unibo.config.TicketConfig;
 
 @RestController
-@RequestMapping(value="/v{ver}/app")
+@RequestMapping(value="/app")
 public class TicketController {
 	
 	@Autowired TicketConfig config;
     @Autowired RedisTemplate<String, Long> redis;
 
     @RequestMapping(value="/ticket/{roomId}", method = RequestMethod.GET)
-    public Long ticket(@PathVariable("ver") final int ver, @PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
+    public Long ticket(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
         
-    	// Gets the version number (if not specified, it uses the configuration one as default)
-    	final int v = (config != null) ? config.getAppVersion() : ver;
-    	
     	// Increments atomically the ticket value for the requested room
     	@SuppressWarnings({ "rawtypes", "unchecked" })
         final Long n = (Long) redis.execute(new SessionCallback<List<Object>>() {
@@ -40,6 +37,11 @@ public class TicketController {
 
         return n;
         
+    }
+    
+    @RequestMapping(value="/", method = RequestMethod.GET)
+    public String msg(){
+        return "TicketDispencerService v." + config.getAppVersion();
     }
 	
 }
