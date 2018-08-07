@@ -25,8 +25,8 @@ public class TicketController {
     public Long ticket(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
         
     	// Increments atomically the ticket value for the requested room
-    	@SuppressWarnings({ "rawtypes", "unchecked" })
         final Long n = (Long) redis.execute(new SessionCallback<List<Object>>() {
+        	@SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
             public List<Object> execute(RedisOperations ops) throws DataAccessException {
                 ops.multi();
@@ -44,6 +44,22 @@ public class TicketController {
 		}
     	
         return n;
+        
+    }
+    
+    @RequestMapping(value="/ticket/{roomId}/reset", method = RequestMethod.POST)
+    public void resetTicket(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
+        
+    	// Resets atomically the ticket value for the requested room
+    	redis.execute(new SessionCallback<List<Object>>() {
+            @SuppressWarnings({ "rawtypes", "unchecked" })
+			@Override
+            public List<Object> execute(RedisOperations ops) throws DataAccessException {
+                ops.multi();
+                ops.delete(roomId);
+                return ops.exec();
+            }
+        });
         
     }
     
