@@ -11,6 +11,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication // tells Boot this is the bootstrap class for the project
@@ -28,10 +30,12 @@ public class TicketServerApp {
     }
 
     @Bean
-    public RedisTemplate<String, Long> redisTemplate(RedisConnectionFactory rcf){
+    public RedisTemplate<String, Long> redisTemplate(final RedisConnectionFactory rcf){
         final RedisTemplate<String, Long> rt = new RedisTemplate<String, Long>();
         rt.setConnectionFactory(rcf);
         rt.setEnableTransactionSupport(true);
+        rt.setKeySerializer(new StringRedisSerializer());
+        rt.setValueSerializer(new GenericToStringSerializer<>(Long.class));
         return rt;
     }
 

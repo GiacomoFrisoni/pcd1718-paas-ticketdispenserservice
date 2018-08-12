@@ -7,8 +7,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -50,32 +48,17 @@ public class TicketController {
     
     @RequestMapping(value="/ticket/{roomId}/count", method = RequestMethod.GET)
     public Long countTicketsInRoom(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
-    	
-    	redis.setKeySerializer(new StringRedisSerializer());
-		redis.setValueSerializer(new GenericToStringSerializer<>(Long.class));
-    	
-    	if (redis.hasKey(roomId)) {
-    		return redis.opsForValue().get(roomId);
-    	} else {
-    		// If there is no ticket value associated to the room, the counter is zero (new room)
-    		return 0L;
-    	}
+
+		// If there is no ticket value associated to the room, the counter is zero (new room)
+    	return (redis.hasKey(roomId)) ? redis.opsForValue().get(roomId) : 0L;
 		
     }
     
     @RequestMapping(value="/ticket/{roomId}/reset", method = RequestMethod.POST)
     public void resetTicket(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
         
-    	// Resets atomically the ticket value for the requested room
-    	redis.execute(new SessionCallback<List<Object>>() {
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-			@Override
-            public List<Object> execute(final RedisOperations ops) throws DataAccessException {
-                ops.multi();
-                ops.delete(roomId);
-                return ops.exec();
-            }
-        });
+    	// Resets the ticket value for the requested room
+    	redis.delete(roomId);
         
     }
     
