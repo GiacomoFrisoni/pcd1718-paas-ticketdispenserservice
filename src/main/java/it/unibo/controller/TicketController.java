@@ -1,6 +1,7 @@
 package it.unibo.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -48,18 +49,10 @@ public class TicketController {
     
     @RequestMapping(value="/ticket/{roomId}/count", method = RequestMethod.GET)
     public Long countTicketsInRoom(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
-
+    	
 		// If there is no ticket value associated to the room, the counter is zero (new room)
-    	return (redis.hasKey(roomId)) ? redis.opsForValue().get(roomId) : 0L;
+    	return Optional.ofNullable(redis.opsForValue().get(roomId)).orElse(0L);
 		
-    }
-    
-    @RequestMapping(value="/ticket/{roomId}/reset", method = RequestMethod.POST)
-    public void resetTicket(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
-        
-    	// Resets the ticket value for the requested room
-    	redis.delete(roomId);
-        
     }
     
     @RequestMapping(value="/", method = RequestMethod.GET)
