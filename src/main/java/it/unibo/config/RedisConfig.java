@@ -23,6 +23,7 @@ public class RedisConfig {
         final URI redisUri = new  URI(System.getenv("REDIS_URL"));
         rc.setHostName(redisUri.getHost());
         rc.setPort(redisUri.getPort());
+        rc.setDatabase(0);
         return new JedisConnectionFactory(rc);
     }
 
