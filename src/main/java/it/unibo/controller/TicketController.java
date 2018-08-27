@@ -3,6 +3,8 @@ package it.unibo.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
@@ -19,12 +21,16 @@ import it.unibo.config.TicketConfig;
 @RequestMapping(value="/app")
 public class TicketController {
 	
+	private static final Logger logger = LoggerFactory.getLogger(TicketController.class);
+	
 	@Autowired TicketConfig config;
     @Autowired RedisTemplate<String, Long> redis;
 
     @RequestMapping(value="/ticket/{roomId}", method = RequestMethod.GET)
     public Long getTicket(@PathVariable("roomId") final String roomId, final javax.servlet.http.HttpServletRequest req) {
         
+    	logger.info("Ticket request received");
+    	
     	// Increments atomically the ticket value for the requested room
         final Long n = (Long) redis.execute(new SessionCallback<List<Object>>() {
         	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -37,11 +43,13 @@ public class TicketController {
         }).stream().reduce((a,b) -> b).get();
 
         // Random delay in order to simulate concurrency
-    	try {
-			Thread.sleep((long) (Math.random() * 1000));
+        try {
+			Thread.sleep((long) (Math.random() * 1500));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+    	
+    	logger.info("Generated ticket! Value: " + n);
     	
         return n;
         
